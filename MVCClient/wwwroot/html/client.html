@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script>
+        async function login() {
+            
+            await fetch("http://localhost:5043/api/Login", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify(getInfo())
+            }).then(x => x.text())
+                .then(x => result = x); // çıktıyı result değişkenine ata
+                // gelen token ı bir yerde tutacaksak -> cookie, local storage da tutarız.
+            if (result.indexOf("401") > 0)
+                alert("Kullanıcı adı veya şifre yanlış..."); // bu haliyle kendi hata mesajlarını gönderiyor (kullanıcı bulunamadı - şifre hatalı bu şekilde daha iyi)
+            else {
+                // token geldi ise
+                // alert(result);
+                // window.location.href = "http://localhost:5043/html/index.html"; // bu sayfayı aç
+                // window.location.href = "http://localhost:5043/html/index.html?token=" + result; // tokeni gönder
+                // window.location.href = "http://localhost:5043/html/index.html";
+                //localStorage.setItem("token", result); // tokeni local storage da sakla
+                //window.location.href = "http://localhost:5043/html/index.html"; // bu sayfayı aç
+
+                sessionStorage.setItem("jwtToken", "Bearer " + result); // tokeni session storage da sakla
+            }
+
+
+            return false;
+        }
+
+        function getInfo() {
+            var username = document.getElementById("username").value;
+            var pwd = document.getElementById("password").value;
+
+            return {
+                username : username,
+                password : pwd
+            }
+        }
+
+        async function getProductData() {
+            if (sessionStorage.getItem("jwtToken") == null) {
+                alert("Önce giriş yapmalısınız.");
+                return;
+            }
+            let token = sessionStorage.getItem("jwtToken");
+            // let token = localStorage.getItem("jwtToken");
+            let data;
+            await fetch("http://localhost:5043/api/Products", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": token
+                }
+            }).then(x => x.text())
+                .then(x => alert(x)); // çıktıyı result değişkenine ata
+        }
+    </script>
+</head>
+<body>
+    <!-- login olustur -->
+    <form>
+        <table>
+            <tr>
+                <td><b>UserName : </b></td>
+                <td><input type="text" id="username" /></td>
+            </tr>
+            <tr>
+                <td><b>Password : </b></td>
+                <td><input type="password" id="password" /></td>
+            </tr>
+            <!--<tr>
+                <td></td>
+                <td><input type="submit" onclick="return login()" /></td>
+            </tr>-->
+        </table>
+    </form>
+    <button onclick="login()">giriş</button>
+    <br />
+    <br />
+    <button onclick="getProductData()">dataları getir</button>
+    <!--.then(response => {
+    if (response.status == 200) {
+    alert("Login successful");
+    window.location.href = "http://localhost:5043/html/index.html";
+    } else {
+    alert("Login failed");
+    }
+    })-->
+</body>
+</html>
